@@ -1,1 +1,1 @@
-# lm_flutter_sdk
+# lm-flutter-sdk

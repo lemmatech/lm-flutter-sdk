@@ -1,0 +1,6 @@
+framework module LemmaSDK {
+  umbrella header "LemmaSDK.h"
+
+  export *
+  module * { export * }
+}
