@@ -50,6 +50,21 @@ class AdInstanceManager {
       case 'onAdLoaded':
         _invokeOnAdLoaded(ad, eventName, arguments);
         break;
+      case 'onAdFailedToLoad':
+        _invokeOnAdFailedToLoad(ad, eventName, arguments);
+        break;
+      case 'onBannerWillPresentScreen':
+        _invokeOnAdOpened(ad, eventName);
+        break;
+      case 'onBannerDidDismissScreen':
+        _invokeOnAdClosed(ad, eventName);
+        break;
+      case 'adWillPresent':
+        _invokeOnAdShowingFullScreenContent(ad, eventName);
+        break;
+      case 'adDidDismiss':
+        _invokeOnAdDismissedFullScreenContent(ad, eventName);
+        break;
       default:
         debugPrint('invalid ad event name: $eventName');
     }
@@ -117,8 +132,10 @@ class AdInstanceManager {
       Ad ad, String eventName, Map<dynamic, dynamic> arguments) {
     if (ad is AdWithView) {
       ad.listener.onAdFailedToLoad?.call(ad, arguments['loadAdError']);
-    } else {
-      debugPrint('invalid ad: $ad, for event name: $eventName');
+    } else if (ad is InterstitialAd) {
+      ad.adLoadCallback.onAdFailedToLoad.call(arguments['loadAdError']);
+    }else{
+        debugPrint('invalid ad: $ad, for event name: $eventName');
     }
   }
 
@@ -127,8 +144,7 @@ class AdInstanceManager {
     ad.responseInfo = arguments['responseInfo'];
     if (ad is AdWithView) {
       ad.listener.onAdLoaded?.call(ad);
-    }
-    if (ad is InterstitialAd) {
+    }else if (ad is InterstitialAd) {
       ad.adLoadCallback.onAdLoaded.call(ad);
     } else {
       debugPrint('invalid ad: $ad, for event name: $eventName');

@@ -6,7 +6,8 @@
         android:label="lemma_sdk_example"
         android:name="${applicationName}"
         tools:replace="android:label"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:networkSecurityConfig="@xml/network_sec_conf">
         <activity
             android:name=".MainActivity"
             android:exported="true"

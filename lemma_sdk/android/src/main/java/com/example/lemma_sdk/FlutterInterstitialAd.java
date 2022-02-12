@@ -58,7 +58,8 @@ class FlutterInterstitialAd extends FlutterAd.FlutterOverlayAd implements LMInte
 
     @Override
     public void onAdFailed(LMInterstitial ad, Error error) {
-        manager.onAdFailedToLoad(adId, new FlutterAdError());
+        FlutterAdError adErr = new FlutterAdError(1,"LemmaSDK",error.getMessage());
+        manager.onAdFailedToLoad(adId, adErr);
     }
 
     @Override

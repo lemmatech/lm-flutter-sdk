@@ -58,8 +58,8 @@ class FlutterBannerAd extends FlutterAd  {
             @Override
             public void onAdError(Error error) {
                 if (adView != null) {
-                    FlutterAdError err = new FlutterAdError();
-                    manager.onAdFailedToLoad(adId, err);
+                    FlutterAdError adErr = new FlutterAdError(1,"LemmaSDK",error.getMessage());
+                    manager.onAdFailedToLoad(adId, adErr);
                 }
             }
         });

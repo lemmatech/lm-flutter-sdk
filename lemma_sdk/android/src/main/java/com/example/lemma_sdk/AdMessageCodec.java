@@ -44,8 +44,9 @@ class AdMessageCodec extends StandardMessageCodec {
             writeValue(stream, ((FlutterAdRequest) value).switchToVideo);
         } else if (value instanceof FlutterAdError) {
             stream.write(VALUE_LOAD_AD_ERROR);
-
-
+            writeValue(stream, ((FlutterAdError) value).code);
+            writeValue(stream, ((FlutterAdError) value).domain);
+            writeValue(stream, ((FlutterAdError) value).message);
         } else if (value instanceof Location) {
             stream.write(VALUE_LOCATION_PARAMS);
             writeValue(stream, ((Location) value).getLatitude());
@@ -78,7 +79,10 @@ class AdMessageCodec extends StandardMessageCodec {
                 request.switchToVideo = switchToVideo;
                 return request;
             case VALUE_LOAD_AD_ERROR:
-                return new FlutterAdError();
+                final Integer code = (Integer) readValueOfType(buffer.get(), buffer);
+                final String domain = (String) readValueOfType(buffer.get(), buffer);
+                final String msg = (String) readValueOfType(buffer.get(), buffer);
+                return new FlutterAdError(code, domain, msg);
             case VALUE_LOCATION_PARAMS:
                 Location location = new Location("");
                 return location;
