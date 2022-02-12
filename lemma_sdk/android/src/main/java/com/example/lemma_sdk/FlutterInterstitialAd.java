@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import lemma.lemmavideosdk.interstitial.LMInterstitial;
+import lemma.lemmavideosdk.videointerstitial.LMVideoInterstitial;
 
 class FlutterInterstitialAd extends FlutterAd.FlutterOverlayAd implements LMInterstitial.LMInterstitialListener {
     private static final String TAG = "FlutterInterstitialAd";
@@ -16,6 +17,9 @@ class FlutterInterstitialAd extends FlutterAd.FlutterOverlayAd implements LMInte
     @NonNull private final FlutterAdRequest request;
     @Nullable
     private LMInterstitial interstitial;
+
+    @Nullable
+    private LMVideoInterstitial videoInterstitial;
 
     public void setContext(Context context) {
         this.context = context;
@@ -32,22 +36,69 @@ class FlutterInterstitialAd extends FlutterAd.FlutterOverlayAd implements LMInte
         this.request = request;
     }
 
+    void  setupVideoInst() {
+
+        if (null != videoInterstitial) {
+            videoInterstitial.destroy();
+            videoInterstitial = null;
+        }
+
+        videoInterstitial = new LMVideoInterstitial(context,
+                request.publisherId,
+                request.adUnitId,
+                request.serverURL);
+
+        videoInterstitial.setListener(new LMVideoInterstitial.LMVideoInterstitialListener() {
+            @Override
+            public void onAdReceived(LMVideoInterstitial lmVideoInterstitial) {
+                manager.onAdLoaded(adId);
+            }
+
+            @Override
+            public void onAdFailed(LMVideoInterstitial lmVideoInterstitial, Error error) {
+                FlutterAdError adErr = new FlutterAdError(1,"LemmaSDK",error.getMessage());
+                manager.onAdFailedToLoad(adId, adErr);
+            }
+
+            @Override
+            public void onAdOpened(LMVideoInterstitial lmVideoInterstitial) {
+                manager.onAdWillPresent(adId);
+            }
+
+            @Override
+            public void onAdClosed(LMVideoInterstitial lmVideoInterstitial) {
+                videoInterstitial = null;
+                manager.onAdDissmissed(adId);
+            }
+
+            @Override
+            public void onAdCompletion(LMVideoInterstitial lmVideoInterstitial) {
+
+            }
+        });
+        videoInterstitial.loadAd();
+    }
+
     @Override
     void load() {
         if (manager != null && request != null) {
 
-            if (null != interstitial) {
-                interstitial.destroy();
-                interstitial = null;
+            if(request.switchToVideo) {
+                setupVideoInst();
+            }else{
+                if (null != interstitial) {
+                    interstitial.destroy();
+                    interstitial = null;
+                }
+
+                interstitial = new LMInterstitial(context,
+                        request.publisherId,
+                        request.adUnitId,
+                        request.serverURL);
+
+                interstitial.setListener(this);
+                interstitial.loadAd();
             }
-
-            interstitial = new LMInterstitial(context,
-                    request.publisherId,
-                    request.adUnitId,
-                    request.serverURL);
-
-            interstitial.setListener(this);
-            interstitial.loadAd();
         }
     }
 
@@ -69,7 +120,6 @@ class FlutterInterstitialAd extends FlutterAd.FlutterOverlayAd implements LMInte
 
     @Override
     public void onAdClosed(LMInterstitial ad) {
-        Log.d(TAG, "Ad Closed");
         interstitial = null;
         manager.onAdDissmissed(adId);
     }
@@ -77,11 +127,12 @@ class FlutterInterstitialAd extends FlutterAd.FlutterOverlayAd implements LMInte
     @Override
     void dispose() {
         interstitial = null;
+        videoInterstitial = null;
     }
 
     @Override
     public void show() {
-        if (interstitial == null) {
+        if (interstitial == null && videoInterstitial == null) {
             Log.e(TAG, "Error showing interstitial - the interstitial ad wasn't loaded yet.");
             return;
         }
@@ -89,7 +140,12 @@ class FlutterInterstitialAd extends FlutterAd.FlutterOverlayAd implements LMInte
             Log.e(TAG, "Tried to show interstitial before activity was bound to the plugin.");
             return;
         }
-        interstitial.show();
+
+        if (interstitial != null){
+            interstitial.show();
+        }else if (videoInterstitial != null) {
+            videoInterstitial.show();
+        }
     }
 }
 
